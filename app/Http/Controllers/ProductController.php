@@ -9,6 +9,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
+use App\Http\Requests\BulkUpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -44,6 +45,7 @@ class ProductController extends Controller
 
         return inertia('Product/Index', [
             'products' => ProductResource::collection($products),
+            'categories' => CategoryResource::collection(Category::orderBy('name')->get()),
             'query' => (object) request()->query()
         ]);
     }
@@ -127,4 +129,20 @@ class ProductController extends Controller
             ->route('products.index')
             ->with('message', 'Selected products deleted successfully.');
     }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function bulkUpdate(BulkUpdateProductRequest $request)
+    {
+        Product::whereIn('id', $request->product_ids)
+            ->update([
+                'category_id' => $request->category_id
+            ]);
+
+        return redirect()
+            ->route('products.index')
+            ->with('message', 'Selected products updated successfully.');
+    }
+
 }
